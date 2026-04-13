@@ -1,0 +1,57 @@
+---
+name: qualitative
+title: Zmienne jakosciowe
+menuGroup: Exploration
+version: '1.0.0'
+jas: '1.2'
+
+completeWhenFilled: true
+
+options:
+    - name: data
+      type: Data
+
+    - name: vars
+      title: Zmienne
+      type: Variables
+      permitted:
+        - factor
+      description:
+          R: zmienne jakosciowe (factor)
+
+    - name: splitBy
+      title: Zmienna grupujaca
+      type: Variable
+      suggested:
+        - nominal
+        - ordinal
+      permitted:
+        - factor
+        - numeric
+        - id
+      default: null
+      description:
+          R: zmienna grupujaca (factor)
+
+    - name: pcCol
+      title: '% w kolumnie'
+      type: Bool
+      default: true
+      description:
+          R: procenty w kolumnie (po grupach)
+
+    - name: pcRow
+      title: '% w wierszu'
+      type: Bool
+      default: false
+      description:
+          R: procenty w wierszu
+
+    - name: pcTotal
+      title: '% ogolem'
+      type: Bool
+      default: false
+      description:
+          R: procenty z calkowitej liczby obserwacji
+
+...

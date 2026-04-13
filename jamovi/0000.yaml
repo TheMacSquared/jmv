@@ -16,16 +16,23 @@ description: >
   common analyses (such as t-tests, ANOVAs, regression, correlation matrices,
   proportion tests, contingency tables, factor analysis, etc).
 analyses:
-  - title: Descriptives
+  - title: Zmienne ilosciowe
     name: descriptives
     ns: jmv
     menuGroup: Exploration
-    menuTitle: Descriptives
+    menuTitle: Zmienne ilosciowe
     description: >
-      Descriptives are an assortment of summarising statistics, and
-      visualizations which allow exploring the shape and distribution of data.
-      It is good practice to explore your data with descriptives before
-      proceeding to more formal tests.
+      Statystyki opisowe dla zmiennych ilosciowych: srednia, mediana,
+      odchylenie standardowe, wykresy i inne.
+    category: analyses
+  - title: Zmienne jakosciowe
+    name: qualitative
+    ns: jmv
+    menuGroup: Exploration
+    menuTitle: Zmienne jakosciowe
+    description: >
+      Tabele czestosci dla zmiennych jakosciowych z mozliwoscia grupowania
+      i procentami w kolumnach.
     category: analyses
   - title: Independent Samples T-Test
     name: ttestIS

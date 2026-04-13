@@ -1,0 +1,22 @@
+---
+name: qualitative
+title: Zmienne jakosciowe
+jrs: '1.1'
+
+items:
+    - name: freqs
+      title: Tabele czestosci
+      type: Array
+      description: tabele czestosci dla zmiennych jakosciowych
+      items: (vars)
+      template:
+          title: $key
+          type: Table
+          clearWith:
+            - splitBy
+            - pcCol
+            - pcRow
+            - pcTotal
+          columns: []
+
+...

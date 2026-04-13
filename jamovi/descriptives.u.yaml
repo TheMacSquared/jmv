@@ -44,14 +44,7 @@ children:
           column: 1
           row: 0
         verticalAlignment: center
-        children:
-          - type: CheckBox
-            name: freq
-            label: Frequency tables
-            icons:
-              - variable-nominal
-              - variable-ordinal
-            iconPosition: right
+        children: []
   - type: CollapseBox
     label: Statistics
     collapsed: true
@@ -146,6 +139,9 @@ children:
                   - type: CheckBox
                     name: variance
                   - type: CheckBox
+                    name: v
+                    label: Wsp. zmienności (V)
+                  - type: CheckBox
                     name: range
               - type: LayoutBox
                 margin: normal
@@ -165,18 +161,6 @@ children:
                   - type: CheckBox
                     name: se
                     label: Std. error of Mean
-                  - type: CheckBox
-                    name: ci
-                    label: Confidence interval for Mean
-                    style: inline
-                    verticalAlignment: center
-                    children:
-                      - type: TextBox
-                        name: ciWidth
-                        label: ''
-                        suffix: '%'
-                        format: number
-                        enable: (ci)
       - type: LayoutBox
         stretchFactor: 4
         margin: large
@@ -264,9 +248,3 @@ children:
               - type: CheckBox
                 name: boxMean
                 enable: (box || violin || dot)
-          - type: Label
-            label: Bar Plots
-            stretchFactor: 1
-            children:
-              - type: CheckBox
-                name: bar
