@@ -1,0 +1,54 @@
+---
+name: simpleCorr
+title: Prosta korelacja
+jrs: '1.1'
+
+items:
+    - name: table
+      title: Korelacja
+      type: Table
+      rows: 1
+      clearWith:
+        - var1
+        - var2
+        - method
+      columns:
+        - name: var1
+          title: Zmienna 1
+          type: text
+
+        - name: var2
+          title: Zmienna 2
+          type: text
+
+        - name: r
+          title: r
+          type: number
+
+        - name: df
+          title: df
+          type: integer
+
+        - name: p
+          title: p
+          type: number
+          format: zto,pvalue
+          visible: (pValue)
+
+        - name: n
+          title: N
+          type: integer
+
+    - name: plot
+      title: Wykres rozrzutu
+      type: Image
+      visible: (showPlot)
+      width: 500
+      height: 400
+      renderFun: .scatterPlot
+      clearWith:
+        - var1
+        - var2
+        - method
+
+...

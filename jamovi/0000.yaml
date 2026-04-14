@@ -156,6 +156,15 @@ analyses:
       assumptions of normality or homogeneity of variances. However, it has the
       limitation that it can only test a single explanatory variable at a time.
     category: analyses
+  - title: Prosta korelacja
+    name: simpleCorr
+    menuGroup: Regression
+    menuTitle: Prosta korelacja
+    ns: jmv
+    description: >
+      Korelacja dwoch zmiennych z wykresem rozrzutu i linia regresji.
+      Analiza dydaktyczna dla prostej wizualnej prezentacji zaleznosci.
+    category: analyses
   - title: Correlation Matrix
     name: corrMatrix
     menuGroup: Regression

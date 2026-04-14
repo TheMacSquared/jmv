@@ -1,0 +1,49 @@
+---
+name:  simpleCorr
+title: Prosta korelacja
+menuGroup: Regression
+version: '1.0.0'
+jas: '1.2'
+
+completeWhenFilled: true
+
+options:
+    - name: data
+      type: Data
+
+    - name: var1
+      title: Zmienna 1
+      type: Variable
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: var2
+      title: Zmienna 2
+      type: Variable
+      suggested:
+        - continuous
+      permitted:
+        - numeric
+
+    - name: method
+      title: Metoda
+      type: List
+      options:
+        - name: pearson
+          title: Pearson
+        - name: spearman
+          title: Spearman
+      default: pearson
+
+    - name: pValue
+      title: Pokaz p-value
+      type: Bool
+      default: true
+
+    - name: showPlot
+      title: Wykres rozrzutu
+      type: Bool
+      default: true
+...
