@@ -54,4 +54,18 @@ options:
       description:
           R: procenty z calkowitej liczby obserwacji
 
+    - name: bar
+      title: Wykres slupkowy
+      type: Bool
+      default: false
+      description:
+          R: wykres slupkowy liczebnosci dla zmiennych jakosciowych
+
+    - name: mosaic
+      title: Wykres mozaikowy
+      type: Bool
+      default: false
+      description:
+          R: wykres mozaikowy dla zmiennych jakosciowych
+
 ...

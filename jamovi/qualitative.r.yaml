@@ -19,4 +19,15 @@ items:
             - pcTotal
           columns: []
 
+    - name: plots
+      title: Wykresy
+      type: Array
+      description: wykresy dla zmiennych jakosciowych
+      visible: (bar || mosaic)
+      items: (vars)
+      template:
+          title: $key
+          type: Group
+          items: []
+
 ...

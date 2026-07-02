@@ -25,6 +25,8 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
                 else
                     private$.initGrouped(table, data, var, splitBy)
             }
+
+            private$.initPlots()
         },
         .initSimple = function(table, data, var) {
             # propTestN style: level column with auto-content, count, proportion
@@ -135,6 +137,8 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
                 else
                     private$.fillGrouped(table, data, var, splitBy)
             }
+
+            private$.preparePlots()
         },
         .fillSimple = function(table, data, var) {
             # propTestN style: setRow by rowKey
@@ -210,6 +214,185 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
             table$setRow(rowKey = 'total', values = values)
         },
 
+        #### Plots ----
+        .initPlots = function() {
+            if (! self$options$bar && ! self$options$mosaic)
+                return()
+
+            vars <- self$options$vars
+            splitBy <- self$options$splitBy
+
+            for (i in seq_along(vars)) {
+                var <- vars[i]
+                data <- private$.cleanData(var, splitBy)
+
+                if (is.null(data))
+                    next
+
+                group <- self$results$plots$get(var)
+                levels <- private$.plotLevels(data, var, splitBy)
+
+                if (self$options$bar) {
+                    size <- private$.plotSize(levels, "bar")
+                    image <- jmvcore::Image$new(
+                        options = self$options,
+                        name = "bar",
+                        renderFun = ".barPlot",
+                        requiresData = TRUE,
+                        width = size[1],
+                        height = size[2],
+                        clearWith = list("splitBy", "bar")
+                    )
+                    group$add(image)
+                }
+
+                if (self$options$mosaic) {
+                    size <- private$.plotSize(levels, "mosaic")
+                    image <- jmvcore::Image$new(
+                        options = self$options,
+                        name = "mosaic",
+                        renderFun = ".mosaicPlot",
+                        requiresData = TRUE,
+                        width = size[1],
+                        height = size[2],
+                        clearWith = list("splitBy", "mosaic")
+                    )
+                    group$add(image)
+                }
+            }
+        },
+        .preparePlots = function() {
+            if (! self$options$bar && ! self$options$mosaic)
+                return()
+
+            vars <- self$options$vars
+            splitBy <- self$options$splitBy
+
+            for (i in seq_along(vars)) {
+                var <- vars[i]
+                data <- private$.cleanData(var, splitBy)
+
+                if (is.null(data))
+                    next
+
+                group <- self$results$plots$get(var)
+                state <- list(var = var, splitBy = splitBy)
+
+                if (self$options$bar)
+                    group$get("bar")$setState(state)
+
+                if (self$options$mosaic)
+                    group$get("mosaic")$setState(state)
+            }
+        },
+        .barPlot = function(image, ggtheme, theme, ...) {
+            if (is.null(image$state))
+                return(FALSE)
+
+            var <- image$state$var
+            splitBy <- image$state$splitBy
+            data <- private$.cleanData(var, splitBy)
+
+            if (is.null(data) || nrow(data) == 0)
+                return(FALSE)
+
+            if (is.null(splitBy)) {
+                counts <- as.data.frame(table(data[[var]], useNA = "no"))
+                names(counts) <- c("level", "count")
+
+                plot <- ggplot2::ggplot(
+                    data = counts,
+                    ggplot2::aes(x = level, y = count)
+                ) +
+                    ggplot2::geom_col(
+                        fill = theme$fill[2],
+                        color = theme$color[1],
+                        width = 0.7
+                    ) +
+                    ggplot2::labs(x = var, y = "Liczebnosc")
+            } else {
+                counts <- as.data.frame(table(data[[var]], data[[splitBy]], useNA = "no"))
+                names(counts) <- c("level", "group", "count")
+
+                plot <- ggplot2::ggplot(
+                    data = counts,
+                    ggplot2::aes(x = level, y = count, fill = group)
+                ) +
+                    ggplot2::geom_col(
+                        color = theme$color[1],
+                        position = ggplot2::position_dodge(width = 0.8),
+                        width = 0.7
+                    ) +
+                    ggplot2::labs(x = var, y = "Liczebnosc", fill = splitBy)
+            }
+
+            plot <- plot + ggtheme
+            plot <- plot + ggplot2::theme(
+                legend.position = "bottom",
+                legend.box = "vertical"
+            )
+
+            if (private$.needsAngledLevels(data[[var]]))
+                plot <- plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
+
+            return(plot)
+        },
+        .mosaicPlot = function(image, ggtheme, theme, ...) {
+            if (is.null(image$state))
+                return(FALSE)
+
+            var <- image$state$var
+            splitBy <- image$state$splitBy
+            data <- private$.cleanData(var, splitBy)
+
+            if (is.null(data) || nrow(data) == 0)
+                return(FALSE)
+
+            if (is.null(splitBy))
+                rects <- private$.mosaicDataSimple(data, var)
+            else
+                rects <- private$.mosaicDataGrouped(data, var, splitBy)
+
+            if (nrow(rects) == 0)
+                return(FALSE)
+
+            plot <- ggplot2::ggplot(rects) +
+                ggplot2::geom_rect(
+                    ggplot2::aes(
+                        xmin = xmin,
+                        xmax = xmax,
+                        ymin = ymin,
+                        ymax = ymax,
+                        fill = fill
+                    ),
+                    color = "white"
+                ) +
+                ggplot2::scale_x_continuous(
+                    breaks = rects$xmid[!duplicated(rects$level)],
+                    labels = rects$level[!duplicated(rects$level)],
+                    expand = c(0, 0)
+                ) +
+                ggplot2::scale_y_continuous(expand = c(0, 0)) +
+                ggplot2::labs(
+                    x = var,
+                    y = ifelse(is.null(splitBy), "Proporcja", splitBy),
+                    fill = ifelse(is.null(splitBy), var, splitBy)
+                ) +
+                ggtheme
+            plot <- plot + ggplot2::theme(
+                legend.position = "bottom",
+                legend.box = "vertical"
+            )
+
+            if (is.null(splitBy))
+                plot <- plot + ggplot2::guides(fill = "none")
+
+            if (private$.needsAngledLevels(data[[var]]))
+                plot <- plot + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
+
+            return(plot)
+        },
+
         #### Helpers ----
         .cleanData = function(var, splitBy) {
             data <- self$data
@@ -225,6 +408,106 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
                 columns[[splitBy]] <- as.factor(data[[splitBy]])
 
             as.data.frame(columns)
+        },
+        .plotLevels = function(data, var, splitBy) {
+            levels <- list(data[[var]])
+
+            if (! is.null(splitBy))
+                levels <- c(levels, list(data[[splitBy]]))
+
+            return(lapply(levels, base::levels))
+        },
+        .plotSize = function(levels, plot) {
+            nLevels <- as.numeric(sapply(levels, length))
+            nLevels <- ifelse(is.na(nLevels[1:2]), 1, nLevels[1:2])
+            nCharLevels <- as.numeric(sapply(lapply(levels, nchar), max))
+            nCharLevels <- ifelse(is.na(nCharLevels[1:2]), 0, nCharLevels[1:2])
+
+            width <- max(520, 95 * nLevels[1])
+            height <- 380
+
+            if (length(levels) > 1) {
+                width <- max(620, 115 * nLevels[1])
+                height <- max(420, 26 * nLevels[2] + 390)
+            }
+
+            if (plot == "mosaic") {
+                width <- max(width, 650)
+                height <- max(height, 460)
+            }
+
+            if (nLevels[1] > 3 || nCharLevels[1] > 12)
+                height <- height + 70
+
+            return(c(width, height))
+        },
+        .needsAngledLevels = function(column) {
+            levels <- base::levels(column)
+            return(length(levels) > 3 || (length(levels) > 0 && max(nchar(levels)) > 12))
+        },
+        .mosaicDataSimple = function(data, var) {
+            counts <- as.data.frame(table(data[[var]], useNA = "no"))
+            names(counts) <- c("level", "count")
+            counts <- counts[counts$count > 0, ]
+
+            total <- sum(counts$count)
+            if (total == 0)
+                return(data.frame())
+
+            widths <- counts$count / total
+            xmax <- cumsum(widths)
+            xmin <- c(0, head(xmax, -1))
+
+            data.frame(
+                level = counts$level,
+                fill = counts$level,
+                xmin = xmin,
+                xmax = xmax,
+                ymin = 0,
+                ymax = 1,
+                xmid = (xmin + xmax) / 2
+            )
+        },
+        .mosaicDataGrouped = function(data, var, splitBy) {
+            mat <- table(data[[var]], data[[splitBy]], useNA = "no")
+            total <- sum(mat)
+
+            if (total == 0)
+                return(data.frame())
+
+            levelTotals <- rowSums(mat)
+            widths <- levelTotals / total
+            xmax <- cumsum(widths)
+            xmin <- c(0, head(xmax, -1))
+
+            pieces <- list()
+            iter <- 1
+            for (i in seq_len(nrow(mat))) {
+                if (levelTotals[i] == 0)
+                    next
+
+                heights <- mat[i, ] / levelTotals[i]
+                ymax <- cumsum(heights)
+                ymin <- c(0, head(ymax, -1))
+
+                for (j in seq_len(ncol(mat))) {
+                    if (heights[j] == 0)
+                        next
+
+                    pieces[[iter]] <- data.frame(
+                        level = rownames(mat)[i],
+                        fill = colnames(mat)[j],
+                        xmin = xmin[i],
+                        xmax = xmax[i],
+                        ymin = ymin[j],
+                        ymax = ymax[j],
+                        xmid = (xmin[i] + xmax[i]) / 2
+                    )
+                    iter <- iter + 1
+                }
+            }
+
+            do.call(rbind, pieces)
         }
     )
 )

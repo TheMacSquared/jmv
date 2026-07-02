@@ -40,3 +40,17 @@ children:
                 name: pcRow
               - type: CheckBox
                 name: pcTotal
+  - type: CollapseBox
+    label: Wykresy
+    collapsed: true
+    children:
+      - type: LayoutBox
+        margin: large
+        children:
+          - type: Label
+            label: Zmienne jakosciowe
+            children:
+              - type: CheckBox
+                name: bar
+              - type: CheckBox
+                name: mosaic
