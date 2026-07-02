@@ -112,15 +112,21 @@ ttestOneSClass <- R6::R6Class(
                     } else if (length(column) == 0) {
                         res <- createError(.('Variable does not contain enough observations'))
                     } else {
-                        # Determine method based on sample size to balance precision and performance.
-                        # R 4.6+ supports exact conditional inference (Pratt's method) for data with 
-                        # ties/zeros. For N >= 50, asymptotic approximation is used for efficiency.
-                        useExact <- (n < 50)
-                      
+                        # R >= 4.6 keeps zero-differences in the signed-rank statistic
+                        # regardless of the 'exact' argument, which shifts the statistic,
+                        # p-value and effect size. Drop zero-differences ourselves so jmv
+                        # always reports the classic Wilcoxon test, identical across R
+                        # versions. Exact inference is used only for small samples with no
+                        # zero-differences and no ties.
+                        nonzero <- column[column != testValue]
+                        useExact <- length(nonzero) < 50 &&
+                                    length(nonzero) == length(column) &&
+                                    ! any(duplicated(abs(nonzero - testValue)))
+
                         res <- try(
                             suppressWarnings(
                                 wilcox.test(
-                                    column, 
+                                    nonzero,
                                     mu=testValue,
                                     alternative=Ha,
                                     paired=FALSE,
@@ -128,24 +134,18 @@ ttestOneSClass <- R6::R6Class(
                                     conf.level=cl,
                                     exact=useExact
                                 )
-                            ), 
+                            ),
                             silent=TRUE
                         )
                     }
 
 
                     if ( ! isError(res)) {
-                        # The Rank Biserial Correlation (effect size) denominator must align with the 
-                        # ranking method used by wilcox.test to ensure the value remains within [-1, 1].
-                        # Pratt's method (used when exact = TRUE) retains zero-differences in the rank pool.
-                        # The asymptotic method (used when exact = FALSE) traditionally excludes zeros.
-                        if (useExact) {
-                            denom_n <- n
-                        } else {
-                            nTies <- sum(column == testValue)
-                            denom_n <- n - nTies
-                        }
-                      
+                        # Zero-differences are dropped from the rank pool, so the rank-biserial
+                        # denominator excludes ties at the test value.
+                        nTies <- sum(column == testValue)
+                        denom_n <- n - nTies
+
                         totalRankSum <- (denom_n * (denom_n + 1)) / 2
                       
                         if (totalRankSum > 0)
