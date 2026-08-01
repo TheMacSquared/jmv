@@ -1111,7 +1111,7 @@ linReg <- function(
             `if`( ! missing(factors), factors, NULL),
             `if`( ! missing(weights), weights, NULL))
 
-    for (v in factors) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (.v in factors) if (.v %in% names(data)) data[[.v]] <- as.factor(data[[.v]])
     if (inherits(emMeans, "formula")) emMeans <- jmvcore::decomposeFormula(emMeans)
 
     options <- linRegOptions$new(

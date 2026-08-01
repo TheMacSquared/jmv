@@ -342,7 +342,7 @@ propTest2 <- function(
             parent.frame(),
             `if`( ! missing(vars), vars, NULL))
 
-    for (v in vars) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (.v in vars) if (.v %in% names(data)) data[[.v]] <- as.factor(data[[.v]])
 
     options <- propTest2Options$new(
         vars = vars,

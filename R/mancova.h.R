@@ -502,7 +502,7 @@ mancova <- function(
             `if`( ! missing(factors), factors, NULL),
             `if`( ! missing(covs), covs, NULL))
 
-    for (v in factors) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (.v in factors) if (.v %in% names(data)) data[[.v]] <- as.factor(data[[.v]])
 
     options <- mancovaOptions$new(
         deps = deps,

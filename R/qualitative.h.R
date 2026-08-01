@@ -10,7 +10,9 @@ qualitativeOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class
             splitBy = NULL,
             pcCol = TRUE,
             pcRow = FALSE,
-            pcTotal = FALSE, ...) {
+            pcTotal = FALSE,
+            bar = FALSE,
+            mosaic = FALSE, ...) {
 
             super$initialize(
                 package="jmv",
@@ -46,32 +48,47 @@ qualitativeOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class
                 "pcTotal",
                 pcTotal,
                 default=FALSE)
+            private$..bar <- jmvcore::OptionBool$new(
+                "bar",
+                bar,
+                default=FALSE)
+            private$..mosaic <- jmvcore::OptionBool$new(
+                "mosaic",
+                mosaic,
+                default=FALSE)
 
             self$.addOption(private$..vars)
             self$.addOption(private$..splitBy)
             self$.addOption(private$..pcCol)
             self$.addOption(private$..pcRow)
             self$.addOption(private$..pcTotal)
+            self$.addOption(private$..bar)
+            self$.addOption(private$..mosaic)
         }),
     active = list(
         vars = function() private$..vars$value,
         splitBy = function() private$..splitBy$value,
         pcCol = function() private$..pcCol$value,
         pcRow = function() private$..pcRow$value,
-        pcTotal = function() private$..pcTotal$value),
+        pcTotal = function() private$..pcTotal$value,
+        bar = function() private$..bar$value,
+        mosaic = function() private$..mosaic$value),
     private = list(
         ..vars = NA,
         ..splitBy = NA,
         ..pcCol = NA,
         ..pcRow = NA,
-        ..pcTotal = NA)
+        ..pcTotal = NA,
+        ..bar = NA,
+        ..mosaic = NA)
 )
 
 qualitativeResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "qualitativeResults",
     inherit = jmvcore::Group,
     active = list(
-        freqs = function() private$.items[["freqs"]]),
+        freqs = function() private$.items[["freqs"]],
+        plots = function() private$.items[["plots"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -92,7 +109,23 @@ qualitativeResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class
                         "pcCol",
                         "pcRow",
                         "pcTotal"),
-                    columns=list())))}))
+                    columns=list())))
+            self$add(jmvcore::Array$new(
+                options=options,
+                name="plots",
+                title="Wykresy",
+                visible="(bar || mosaic)",
+                items="(vars)",
+                template=R6::R6Class(
+                    inherit = jmvcore::Group,
+                    active = list(),
+                    private = list(),
+                    public=list(
+                        initialize=function(options) {
+                            super$initialize(
+                                options=options,
+                                name="undefined",
+                                title="$key")}))$new(options=options)))}))
 
 qualitativeBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "qualitativeBase",
@@ -124,9 +157,12 @@ qualitativeBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param pcCol procenty w kolumnie (po grupach)
 #' @param pcRow procenty w wierszu
 #' @param pcTotal procenty z calkowitej liczby obserwacji
+#' @param bar wykres slupkowy liczebnosci dla zmiennych jakosciowych
+#' @param mosaic wykres mozaikowy dla zmiennych jakosciowych
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$freqs} \tab \tab \tab \tab \tab tabele czestosci dla zmiennych jakosciowych \cr
+#'   \code{results$plots} \tab \tab \tab \tab \tab wykresy dla zmiennych jakosciowych \cr
 #' }
 #'
 #' @export
@@ -136,7 +172,9 @@ qualitative <- function(
     splitBy = NULL,
     pcCol = TRUE,
     pcRow = FALSE,
-    pcTotal = FALSE) {
+    pcTotal = FALSE,
+    bar = FALSE,
+    mosaic = FALSE) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("qualitative requires jmvcore to be installed (restart may be required)")
@@ -149,14 +187,16 @@ qualitative <- function(
             `if`( ! missing(vars), vars, NULL),
             `if`( ! missing(splitBy), splitBy, NULL))
 
-    for (v in vars) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (.v in vars) if (.v %in% names(data)) data[[.v]] <- as.factor(data[[.v]])
 
     options <- qualitativeOptions$new(
         vars = vars,
         splitBy = splitBy,
         pcCol = pcCol,
         pcRow = pcRow,
-        pcTotal = pcTotal)
+        pcTotal = pcTotal,
+        bar = bar,
+        mosaic = mosaic)
 
     analysis <- qualitativeClass$new(
         options = options,
