@@ -1165,6 +1165,13 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             data <- image$state$data
             names <- image$state$names
             labels <- image$state$labels
+
+            # wrap long labels of the grouping factor (shown only in the legend)
+            if ( ! is.null(names$lines) && is.factor(data[[names$lines]])) {
+                wrapped <- jmvcore::wrapLabels(levels(data[[names$lines]]))
+                if ( ! anyDuplicated(wrapped))
+                    levels(data[[names$lines]]) <- wrapped
+            }
             cont <- image$state$cont
 
             dodge <- position_dodge(0.4)
@@ -1185,8 +1192,11 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
             if ( ! is.null(names$plots)) {
                 formula <- as.formula(paste(". ~", names$plots))
-                p <- p + facet_grid(formula)
+                p <- p + facet_grid(formula, labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
             }
+
+            if (is.factor(data[[names$x]]))
+                p <- p + scale_x_discrete(labels=jmvcore::wrapLabels)
 
             p <- p + ylim(0,1) +
                 labs(x=labels$x, y=labels$y, fill=labels$lines, color=labels$lines) +

@@ -927,6 +927,14 @@ contTablesClass <- R6::R6Class(
             tab <- expand.grid(expand)
             tab$Counts <- as.numeric(counts)
 
+            # wrap long labels of the fill factor (shown only in the legend)
+            zName <- `if`(self$options$xaxis == "xcols", rowVarName, colVarName)
+            if (is.factor(tab[[zName]])) {
+                wrapped <- jmvcore::wrapLabels(levels(tab[[zName]]))
+                if ( ! anyDuplicated(wrapped))
+                    levels(tab[[zName]]) <- wrapped
+            }
+
             if (self$options$yaxis == "ypc") { # percentages
                 props <- counts
 
@@ -980,7 +988,8 @@ contTablesClass <- R6::R6Class(
                 }
             }
 
-            p <- p + labs(x=jmvcore::fromB64(xVarName), fill=jmvcore::fromB64(zVarName))
+            p <- p + labs(x=jmvcore::fromB64(xVarName), fill=jmvcore::fromB64(zVarName)) +
+                scale_x_discrete(labels=jmvcore::wrapLabels)
 
             if (length(layerNames) > 0) {
                 if (length(layerNames) == 1)
@@ -988,7 +997,7 @@ contTablesClass <- R6::R6Class(
                 else
                     layers <- as.formula(jmvcore::composeFormula(layerNames[1], layerNames[2]))
 
-                p <- p + facet_grid(layers)
+                p <- p + facet_grid(layers, labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
             }
             p <- p + ggtheme
 

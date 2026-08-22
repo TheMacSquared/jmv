@@ -309,10 +309,16 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
                         color = theme$color[1],
                         width = 0.7
                     ) +
-                    ggplot2::labs(x = var, y = "Liczebnosc")
+                    ggplot2::labs(x = var, y = "Liczebnosc") +
+                    ggplot2::scale_x_discrete(labels = jmvcore::wrapLabels)
             } else {
                 counts <- as.data.frame(table(data[[var]], data[[splitBy]], useNA = "no"))
                 names(counts) <- c("level", "group", "count")
+
+                # wrap long labels of the grouping factor (shown only in the legend)
+                wrapped <- jmvcore::wrapLabels(levels(counts$group))
+                if ( ! anyDuplicated(wrapped))
+                    levels(counts$group) <- wrapped
 
                 plot <- ggplot2::ggplot(
                     data = counts,
@@ -323,7 +329,8 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
                         position = ggplot2::position_dodge(width = 0.8),
                         width = 0.7
                     ) +
-                    ggplot2::labs(x = var, y = "Liczebnosc", fill = splitBy)
+                    ggplot2::labs(x = var, y = "Liczebnosc", fill = splitBy) +
+                    ggplot2::scale_x_discrete(labels = jmvcore::wrapLabels)
             }
 
             plot <- plot + ggtheme
@@ -369,7 +376,7 @@ qualitativeClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class
                 ) +
                 ggplot2::scale_x_continuous(
                     breaks = rects$xmid[!duplicated(rects$level)],
-                    labels = rects$level[!duplicated(rects$level)],
+                    labels = jmvcore::wrapLabels(rects$level[!duplicated(rects$level)]),
                     expand = c(0, 0)
                 ) +
                 ggplot2::scale_y_continuous(expand = c(0, 0)) +

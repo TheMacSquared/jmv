@@ -873,6 +873,13 @@ logRegMultiClass <- R6::R6Class(
             labels <- image$state$labels
             cont <- image$state$cont
 
+            # wrap long labels of the grouping factor (shown only in the legend)
+            if ( ! is.null(names$lines) && is.factor(data[[names$lines]])) {
+                wrapped <- jmvcore::wrapLabels(levels(data[[names$lines]]))
+                if ( ! anyDuplicated(wrapped))
+                    levels(data[[names$lines]]) <- wrapped
+            }
+
             dodge <- position_dodge(0.4)
 
             p <- ggplot(
@@ -909,8 +916,11 @@ logRegMultiClass <- R6::R6Class(
                     formula <- as.formula(paste(". ~", names$xPlots))
                 }
 
-                p <- p + facet_grid(formula)
+                p <- p + facet_grid(formula, labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
             }
+
+            if (is.factor(data[[names$x]]))
+                p <- p + scale_x_discrete(labels=jmvcore::wrapLabels)
 
             p <- p + ylim(0,1) +
                 labs(x=labels$x, y=labels$y, fill=labels$lines, color=labels$lines) +

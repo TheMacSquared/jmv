@@ -333,6 +333,7 @@ ttestOneSClass <- R6::R6Class(
                 geom_point(aes(x=var, y=stat, colour=type, shape=type),
                            fill=theme$fill[1], size=3, colour=theme$color[1], position=pd) +
                 labs(x='', y='') +
+                scale_x_discrete(labels=jmvcore::wrapLabels) +
                 scale_shape_manual(name='', values=c(mean=21, median=22),
                                    labels=c(mean=paste0('Mean (', ciw, '% CI)'), median='Median')) +
                 ggtheme +

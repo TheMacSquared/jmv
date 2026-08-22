@@ -406,6 +406,7 @@ ttestPSClass <- R6::R6Class(
                 geom_errorbar(aes(x=group, ymin=stat-cie, ymax=stat+cie, shape=type, width=.2), size=.8, colour=theme$color[1], position=pd) +
                 geom_point(aes(x=group, y=stat, colour=type, shape=type), fill=theme$fill[1], size=3, colour=theme$color[1], position=pd) +
                 labs(x=groupName, y=NULL) +
+                scale_x_discrete(labels=jmvcore::wrapLabels) +
                 scale_shape_manual(name='', values=c(mean=21, median=22), labels=labels) +
                 ggtheme + theme(plot.title = ggplot2::element_text(margin=ggplot2::margin(b = 5.5 * 1.2)),
                               plot.margin = ggplot2::margin(5.5, 5.5, 5.5, 5.5))

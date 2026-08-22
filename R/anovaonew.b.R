@@ -375,6 +375,7 @@ anovaOneWClass <- if (requireNamespace('jmvcore')) R6::R6Class(
                 ggplot2::geom_errorbar(ggplot2::aes(ymin=mean-ci, ymax=mean+ci, width=.1), size=.8, color=theme$color[2]) +
                 ggplot2::geom_point(ggplot2::aes(color=errorType), fill=theme$fill[1], size=3, shape=21) +
                 ggplot2::labs(x=groupName, y=image$state$dep) +
+                ggplot2::scale_x_discrete(labels=jmvcore::wrapLabels) +
                 ggtheme + ggplot2::theme(legend.title = ggplot2::element_blank(),
                                          legend.justification = 0.5, legend.position = 'top')
 

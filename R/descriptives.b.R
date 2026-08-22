@@ -1023,7 +1023,7 @@ descriptivesClass <- R6::R6Class(
             }
 
             if ( ! is.null(facetFmla))
-                plot <- plot + facet_grid(as.formula(facetFmla), drop=FALSE)
+                plot <- plot + facet_grid(as.formula(facetFmla), drop=FALSE, labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
 
             return(plot)
         },
@@ -1108,7 +1108,7 @@ descriptivesClass <- R6::R6Class(
 
                 plot <- ggplot(data=data, aes(x=x, y=fillrev, fill=!!sym(fill), height=after_stat(density))) +
                     labs(x=labels$x, y=labels[[fill]]) +
-                    scale_y_discrete(expand = c(0.05, 0)) +
+                    scale_y_discrete(expand = c(0.05, 0), labels=jmvcore::wrapLabels) +
                     scale_x_continuous(expand = c(0.01, 0))
 
                 if (self$options$hist)
@@ -1118,9 +1118,9 @@ descriptivesClass <- R6::R6Class(
                     plot <- plot + ggridges::geom_density_ridges(stat="density", scale=0.9, alpha=alpha)
 
                 if (nSplits == 2) {
-                    plot <- plot + facet_grid(cols=vars(s1))
+                    plot <- plot + facet_grid(cols=vars(s1), labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
                 } else if (nSplits > 2) {
-                    plot <- plot + facet_grid(cols=vars(s1), rows=vars(s2))
+                    plot <- plot + facet_grid(cols=vars(s1), rows=vars(s2), labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
                 }
 
                 themeSpec <- theme(legend.position = 'none')
@@ -1173,7 +1173,8 @@ descriptivesClass <- R6::R6Class(
                 }
 
                 plot <- ggplot(data=data, aes_string(x=x, y=names$x)) +
-                    labs(x=labels$s1, y=labels$x)
+                    labs(x=labels$s1, y=labels$x) +
+                    scale_x_discrete(labels=jmvcore::wrapLabels)
 
                 if (self$options$violin) {
                     plot <- plot +
@@ -1250,6 +1251,13 @@ descriptivesClass <- R6::R6Class(
                     splitLabel <- labels$s2
                 }
 
+                # wrap long labels of the grouping factor (shown only in the legend)
+                if (is.factor(data[[split]])) {
+                    wrapped <- jmvcore::wrapLabels(levels(data[[split]]))
+                    if ( ! anyDuplicated(wrapped))
+                        levels(data[[split]]) <- wrapped
+                }
+
                 plot <-
                     ggplot(
                         data=data,
@@ -1257,7 +1265,8 @@ descriptivesClass <- R6::R6Class(
                     ) +
                     labs(
                         x=xLabel, y=labels$x, fill=splitLabel, color=splitLabel
-                    )
+                    ) +
+                    scale_x_discrete(labels=jmvcore::wrapLabels)
 
                 if (self$options$violin) {
                     plot <- plot +
@@ -1322,7 +1331,7 @@ descriptivesClass <- R6::R6Class(
 
             if (length(splitBy) > 2) {
                 formula <- as.formula(paste(". ~", names$s1))
-                plot <- plot + facet_grid(formula)
+                plot <- plot + facet_grid(formula, labeller=ggplot2::as_labeller(function(x) jmvcore::wrapLabels(x, width = 16)))
             }
 
             plot <- plot + ggtheme + themeSpec

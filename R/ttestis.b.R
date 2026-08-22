@@ -540,6 +540,7 @@ ttestISClass <- R6::R6Class(
                 geom_point(aes(x=group, y=stat, shape=type), color=theme$color[1],
                            fill=theme$fill[1], size=3, position=pd) +
                 labs(x=groupName, y=image$key) +
+                scale_x_discrete(labels=jmvcore::wrapLabels) +
                 scale_shape_manual(
                     name='',
                     values=c(mean=21, median=22),

@@ -338,7 +338,7 @@ corrMatrixClass <- R6::R6Class(
 
         p <- GGally::ggpairs(
             data,
-            columnLabels=columns,
+            columnLabels=jmvcore::wrapLabels(columns, width = 12),
             lower=lower,
             upper=upper,
             diag=diag,
