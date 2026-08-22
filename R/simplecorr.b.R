@@ -83,7 +83,7 @@ simpleCorrClass <- if (requireNamespace('jmvcore', quietly = TRUE)) R6::R6Class(
                     method = "lm",
                     formula = y ~ x,
                     se = FALSE,
-                    color = "firebrick",
+                    color = jmvcore::colorPalette(2, theme$palette, 'color')[2],
                     linewidth = 1
                 ) +
                 ggplot2::labs(

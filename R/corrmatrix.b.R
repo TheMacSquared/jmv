@@ -257,6 +257,8 @@ corrMatrixClass <- R6::R6Class(
         palFill <- jmvcore::colorPalette(2, palette, 'fill')
         pointCol <- palCols[1]
         densFill <- palFill[1]
+        # tiles: diverging scale between the first two palette colours
+        # (positive r -> 1st colour, negative r -> 2nd colour, ~0 -> grey)
         negCol <- palCols[2]
         posCol <- palCols[1]
 

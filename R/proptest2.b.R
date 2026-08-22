@@ -268,7 +268,8 @@ propTest2Class <- R6::R6Class(
             p <- ggplot(data=image$state, aes(x=x, y=y, group=group, color=group, linetype=group)) +
                 geom_line(size=0.7) +
                 xlim(0, 1) + labs(x=.("Proportion"), y=.("Density")) +
-                scale_color_manual(values=c("#3E6DA9", "#6b9de8", theme$color[1])) +
+                # prior / likelihood from the user palette, posterior in the neutral line colour
+                scale_color_manual(values=c(jmvcore::colorPalette(2, theme$palette, 'color'), theme$color[1])) +
                 scale_linetype_manual(values=c("dotted", "dashed", "solid")) +
                 # geom_vline(xintercept = prop, size=0.1, linetype="dashed") +
                 ggtheme + themeSpec

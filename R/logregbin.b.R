@@ -1213,7 +1213,7 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
             p <- ggplot(data=df, aes(x=x, y=y)) +
                 geom_abline(slope=1, intercept=0, colour=theme$color[1]) +
-                geom_line(color="red") +
+                geom_line(color=theme$color[2]) +
                 xlab(.("1 - Specificity")) +
                 ylab(.("Sensitivity")) +
                 ggtheme

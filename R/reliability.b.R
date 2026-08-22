@@ -221,7 +221,7 @@ reliabilityClass <- R6::R6Class(
             image <- self$results$get('corPlot')
             image$setState(melted_cormat)
         },
-        .corPlot = function(image, ...) {
+        .corPlot = function(image, ggtheme, theme, ...) {
             if (is.null(image$state))
                 return(FALSE)
 
@@ -240,9 +240,12 @@ reliabilityClass <- R6::R6Class(
                 axis.text.y = element_text(size = 12)
             )
 
+            # diverging scale built from the first two palette colours (light grey midpoint)
+            pal <- jmvcore::colorPalette(2, theme$palette, 'fill')
+
             p <- ggplot(data = image$state, aes(Var2, Var1, fill = value)) +
                         geom_tile(color = "white") +
-                        scale_fill_gradient2(low = "#FF1919", high = "#00B233", mid = "white",
+                        scale_fill_gradient2(low = pal[2], high = pal[1], mid = "grey92",
                                              midpoint = 0, limit = c(-1,1), space = "Lab",
                                              name=jmvcore::format(.("Pearson{}Correlation"), "\n")) +
                         coord_fixed() +
