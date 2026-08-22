@@ -248,17 +248,34 @@ corrMatrixClass <- R6::R6Class(
 
         return(results)
     },
-    .plot=function(image, ggtheme, ...) {
+    .plot=function(image, ggtheme, theme, ...) {
+
+        # colours follow the palette chosen in the app (theme$palette);
+        # fall back to the default jmv palette when called without a theme
+        palette <- if (missing(theme) || is.null(theme$palette)) 'jmv' else theme$palette
+        palCols <- jmvcore::colorPalette(2, palette, 'color')
+        palFill <- jmvcore::colorPalette(2, palette, 'fill')
+        pointCol <- palCols[1]
+        densFill <- palFill[1]
+        negCol <- palCols[2]
+        posCol <- palCols[1]
 
         columns <- unlist(self$options$get('vars'))
 
         if (length(columns) == 0)
             return(FALSE)
 
-        smooth <- GGally::wrap(GGally::ggally_smooth, size = 1, alpha=.3)
+        # lower triangle: coloured, semi-transparent points (density shows
+        # through overplotting) with a black linear fit
+        scatter <- function(data, mapping, ...) {
+            ggplot2::ggplot(data=data, mapping=mapping) +
+                ggplot2::geom_point(colour=pointCol, alpha=0.25, size=1.2) +
+                ggplot2::geom_smooth(method='lm', formula=y ~ x, se=FALSE,
+                                     colour='black', linewidth=0.8)
+        }
 
         lower <- list(
-            continuous=smooth,
+            continuous=scatter,
             combo="facethist",
             discrete="facetbar",
             na = "na")
@@ -273,11 +290,28 @@ corrMatrixClass <- R6::R6Class(
             method <- 'pearson'
         }
 
-        cor <- function(...) GGally::ggally_cor(..., method=method)
+        # upper triangle: tile coloured by the correlation, label is r only
+        # (no p-value / significance stars; those live in the table)
+        corTile <- function(data, mapping, ...) {
+            x <- GGally::eval_data_col(data, mapping$x)
+            y <- GGally::eval_data_col(data, mapping$y)
+            r <- suppressWarnings(stats::cor(x, y, method=method, use='pairwise.complete.obs'))
+            if (is.na(r))
+                r <- 0
+            pal <- grDevices::colorRampPalette(c(negCol, '#E6E6E6', posCol))(201)
+            fill <- pal[round((r + 1) * 100) + 1]
+            lab <- formatC(r, format='f', digits=2)
+            lab <- sub('^(-?)0\\.', '\\1.', lab)
+            ggplot2::ggplot(data=data.frame(x=1, y=1), ggplot2::aes(x=x, y=y)) +
+                ggplot2::geom_tile(fill=fill, colour='white') +
+                ggplot2::geom_text(label=lab, size=4 + 2 * abs(r), colour='black') +
+                ggplot2::theme_void() +
+                ggplot2::theme(panel.background=ggplot2::element_rect(fill=fill, colour=NA))
+        }
 
         if (self$options$get('plotStats'))
             upper <- list(
-                continuous=cor,
+                continuous=corTile,
                 combo="box",
                 discrete="facetbar",
                 na="na")
@@ -286,7 +320,7 @@ corrMatrixClass <- R6::R6Class(
 
         if (self$options$get('plotDens'))
             diag <- list(
-                continuous="densityDiag",
+                continuous=GGally::wrap("densityDiag", fill=densFill, colour='black', alpha=0.8),
                 discrete="barDiag",
                 na="naDiag")
         else
@@ -305,8 +339,13 @@ corrMatrixClass <- R6::R6Class(
             columnLabels=columns,
             lower=lower,
             upper=upper,
-            diag=diag) + ggtheme[[1]] +
-            theme(axis.text = element_text(size = 9))
+            diag=diag,
+            axisLabels='show') + ggtheme[[1]] +
+            theme(axis.text = element_text(size = 7),
+                  strip.text = element_text(size = 9),
+                  panel.spacing = grid::unit(2, 'pt')) +
+            ggplot2::scale_x_continuous(n.breaks=4) +
+            ggplot2::scale_y_continuous(n.breaks=4)
 
         return(p)
     })
