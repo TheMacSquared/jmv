@@ -257,10 +257,9 @@ corrMatrixClass <- R6::R6Class(
         palFill <- jmvcore::colorPalette(2, palette, 'fill')
         pointCol <- palCols[1]
         densFill <- palFill[1]
-        # tiles: diverging scale between the first two palette colours
-        # (positive r -> 1st colour, negative r -> 2nd colour, ~0 -> grey)
-        negCol <- palCols[2]
-        posCol <- palCols[1]
+        # tiles: continuous diverging ramp of the chosen palette
+        # (r = -1 -> low end, r = 0 -> midpoint, r = +1 -> high end)
+        tilePal <- jmvcore::gradientPalette(palette, 'diverging', 201)
 
         columns <- unlist(self$options$get('vars'))
 
@@ -300,8 +299,7 @@ corrMatrixClass <- R6::R6Class(
             r <- suppressWarnings(stats::cor(x, y, method=method, use='pairwise.complete.obs'))
             if (is.na(r))
                 r <- 0
-            pal <- grDevices::colorRampPalette(c(negCol, '#E6E6E6', posCol))(201)
-            fill <- pal[round((r + 1) * 100) + 1]
+            fill <- tilePal[round((r + 1) * 100) + 1]
             lab <- formatC(r, format='f', digits=2)
             lab <- sub('^(-?)0\\.', '\\1.', lab)
             ggplot2::ggplot(data=data.frame(x=1, y=1), ggplot2::aes(x=x, y=y)) +
