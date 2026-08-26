@@ -324,19 +324,6 @@ analyses:
     menuTitle: Weights
     hidden: true
     category: analyses
-datasets:
-  - name: Big 5 (Dolan, Oort, Stoel & Wicherts, 2009)
-    path: Big5.csv
-    description: A nice correlation data set
-  - name: Tooth Growth
-    path: ToothGrowth.csv
-    description: An uninspiring ANOVA data set
-  - name: Bugs (Ryan, Wilde & Crist, 2013)
-    path: bugs.csv
-    description: A repeated measures ANOVA data set
-  - name: Anderson's Iris Data
-    path: iris.csv
-    description: The 'iris' data set from R
 usesNative: true
 minApp: 1.0.8
 index: 0
