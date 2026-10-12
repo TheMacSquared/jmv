@@ -184,8 +184,7 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
         #### Init + run functions ----
         .init = function() {
-            if (! is.null(self$options$dep))
-                private$.errorCheck()
+            private$.dataCheck(initializing=TRUE)
 
             private$.initModelFitTable()
             private$.initModelCompTable()
@@ -203,7 +202,7 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
             if (is.null(self$options$dep) || self$nModels < 1 || length(self$options$blocks[[1]]) == 0)
                 return()
 
-            private$.errorCheck()
+            private$.dataCheck()
 
             private$.populateModelFitTable()
             private$.populateModelCompTable()
@@ -1356,11 +1355,17 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
 
             return(formulas)
         },
-        .errorCheck = function() {
+        .dataCheck = function(initializing=FALSE) {
             dep <- self$options$dep
-            column <- self$data[[dep]]
+            factors <- self$options$factors
 
-            if (length(levels(column)) > 2) {
+            if (is.null(dep))
+                return()
+
+            # this only needs the levels the variable declares, so it can also
+            # run during .init(), where the analysis is given no cases
+
+            if (length(levels(self$data[[dep]])) > 2) {
                 jmvcore::reject(
                     jmvcore::format(
                         .("The dependent variable '{}' has more than two levels; binomial logistic regression can only be performed on dependent variables with two levels."),
@@ -1369,6 +1374,20 @@ logRegBinClass <- if (requireNamespace('jmvcore')) R6::R6Class(
                     code=''
                 )
             }
+
+            if (initializing)
+                return()
+
+            # the checks below count observations, which levels only lose once
+            # rows with missing values have been dropped
+
+            rejectEmptyData(self, self$dataProcessed)
+
+            columns <- c(dep, factors)
+            data <- self$dataProcessed[unlist(jmvcore::toB64(columns))]
+            names(data) <- columns
+
+            rejectSingleLevelVars(self, data, dep=dep, factors=factors)
         },
         .cleanData = function(naOmit=TRUE, naSkip=NULL) {
             dep <- self$options$dep

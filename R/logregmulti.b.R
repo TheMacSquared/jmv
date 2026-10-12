@@ -161,7 +161,7 @@ logRegMultiClass <- R6::R6Class(
                 return()
             }
 
-            private$.errorCheck()
+            private$.dataCheck()
 
             private$.populateModelFitTable()
             private$.populateModelCompTable()
@@ -1016,11 +1016,11 @@ logRegMultiClass <- R6::R6Class(
 
             return(formulas)
         },
-        .errorCheck = function() {
+        .dataCheck = function() {
             dep <- self$options$dep
-            column <- self$dataProcessed[[jmvcore::toB64(dep)]]
+            factors <- self$options$factors
 
-            if (length(levels(column)) == 2) {
+            if (length(levels(self$dataProcessed[[jmvcore::toB64(dep)]])) == 2) {
                 jmvcore::reject(
                     jmvcore::format(
                         .('The dependent variable "{dep}" has only two levels, consider doing a binomial logistic regression.'),
@@ -1029,6 +1029,17 @@ logRegMultiClass <- R6::R6Class(
                     code=''
                 )
             }
+
+            # the checks below count observations, which levels only lose once
+            # rows with missing values have been dropped
+
+            rejectEmptyData(self, self$dataProcessed)
+
+            columns <- c(dep, factors)
+            data <- self$dataProcessed[unlist(jmvcore::toB64(columns))]
+            names(data) <- columns
+
+            rejectSingleLevelVars(self, data, dep=dep, factors=factors)
         },
         .cleanData = function() {
             dep <- self$options$dep

@@ -190,3 +190,84 @@ testthat::test_that('Reference level defaults to first level for faulty referenc
         testthat::expect_match(r[[1]]$content, "reference level was not found", info=param$info)
     }
 })
+
+testthat::test_that("logRegOrd rejects factors with fewer than two observed levels", {
+    set.seed(1)
+    n <- 60
+
+    # GIVEN a factor whose second level has no observations left
+    dep <- factor(sample(c("lo", "mid", "hi"), n, replace=TRUE))
+    f <- factor(rep("a", n), levels=c("a", "b"))
+    data <- data.frame(dep=dep, f=f)
+
+    # WHEN running logRegOrd with that factor as a predictor
+    # THEN the analysis is rejected naming the factor, rather than failing internally
+    testthat::expect_error(
+        jmv::logRegOrd(
+            data, dep="dep", factors="f", blocks=list(list("f")),
+            refLevels=list(list(var="f", ref="a"))
+        ),
+        regexp="'f'.*fewer than two levels with observations",
+        ignore.case=TRUE
+    )
+})
+
+testthat::test_that("logRegOrd rejects data with no rows left after missing values", {
+    set.seed(1)
+    n <- 30
+
+    # GIVEN a covariate whose values are all missing, so no rows survive
+    data <- data.frame(dep=factor(sample(c("lo", "mid", "hi"), n, replace=TRUE)), cov=rep(NA_real_, n))
+
+    # WHEN running logRegOrd
+    # THEN the analysis is rejected saying the dataset has no rows left
+    testthat::expect_error(
+        jmv::logRegOrd(
+            data, dep="dep", covs="cov", blocks=list(list("cov"))
+        ),
+        regexp="contains 0 rows",
+        ignore.case=TRUE
+    )
+})
+
+testthat::test_that("logRegOrd rejects a dependent variable with fewer than two observed levels", {
+    set.seed(1)
+    n <- 60
+
+    # GIVEN a dependent variable whose other levels have no observations
+    dep <- factor(rep("lo", n), levels=c("lo", "mid", "hi"))
+    f <- factor(sample(c("a", "b"), n, replace=TRUE))
+    data <- data.frame(dep=dep, f=f)
+
+    # WHEN running logRegOrd
+    # THEN the analysis is rejected naming the dependent variable
+    testthat::expect_error(
+        jmv::logRegOrd(
+            data, dep="dep", factors="f", blocks=list(list("f")),
+            refLevels=list(list(var="f", ref="a"))
+        ),
+        regexp="'dep'.*fewer than two levels with observations",
+        ignore.case=TRUE
+    )
+})
+
+testthat::test_that("logRegOrd rejects a dependent variable with only two levels", {
+    set.seed(1)
+    n <- 40
+
+    # GIVEN a dependent variable with two levels
+    dep <- factor(sample(c("a", "b"), n, replace=TRUE))
+    f <- factor(sample(c("x", "y"), n, replace=TRUE))
+    data <- data.frame(dep=dep, f=f)
+
+    # WHEN running logRegOrd
+    # THEN the analysis is rejected, pointing at binomial logistic regression
+    testthat::expect_error(
+        jmv::logRegOrd(
+            data, dep="dep", factors="f", blocks=list(list("f")),
+            refLevels=list(list(var="f", ref="x"))
+        ),
+        regexp="consider doing a binomial",
+        ignore.case=TRUE
+    )
+})
