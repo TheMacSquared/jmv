@@ -1,0 +1,4 @@
+# jmc on Windows writes CRLF into regenerated .h.R / .u.yaml; normalise so a
+# native build does not leave the submodule dirty with line-ending-only changes
+*.R text eol=lf
+*.yaml text eol=lf
